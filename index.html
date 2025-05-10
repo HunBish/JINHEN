@@ -12,7 +12,7 @@
       --banana-yellow: #ffe135;
       --banana-bright: #ffdd44;
     }
-
+    
     body {
       font-family: "Comic Sans MS", cursive, sans-serif;
       background-color: var(--bg-light);
@@ -21,17 +21,25 @@
       padding: 50px;
       transition: background 0.3s, color 0.3s;
     }
-
+    
+   body.disco {
+  animation: disco-bg 0.5s infinite;
+   }
+   @keyframes disco-bg {
+  0%   { background-color: red; }
+  25%  { background-color: orange; }
+  50%  { background-color: yellow; }
+  75%  { background-color: green; }
+  100% { background-color: blue; }
+   }
     body.dark-mode {
       background-color: var(--bg-dark);
       color: var(--text-dark);
     }
-
     h1 {
       color: #ffcc00;
       font-size: 3rem;
     }
-
     button {
       margin: 10px;
       padding: 15px 30px;
@@ -43,12 +51,16 @@
       box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
       transition: transform 0.2s ease, background 0.3s;
     }
-
     button:hover {
       background-color: var(--banana-bright);
-      transform: scale(1.05);
+      transform: scale(1.05) translateY(-3px);
+      animation: bounce 0.4s;
     }
-
+    @keyframes bounce {
+      0%   { transform: scale(1.05) translateY(0); }
+      50%  { transform: scale(1.1) translateY(-5px); }
+      100% { transform: scale(1.05) translateY(0); }
+    }
     .modal {
       display: none;
       position: fixed;
@@ -57,7 +69,6 @@
       width: 100%; height: 100%;
       background-color: rgba(0,0,0,0.5);
     }
-
     .modal-content {
       background-color: white;
       margin: 15% auto;
@@ -68,12 +79,10 @@
       position: relative;
       animation: pop 0.3s ease-out;
     }
-
     body.dark-mode .modal-content {
       background-color: #2e2e2e;
       color: white;
     }
-
     @keyframes pop {
       0% { transform: scale(0.7); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
@@ -86,7 +95,6 @@
       cursor: pointer;
       color: red;
     }
-
     .gallery img {
       max-width: 100px;
       margin: 10px;
@@ -95,19 +103,20 @@
   </style>
 </head>
 <body>
-
+  <p id="countdown" style="font-size: 1.2rem; font-weight: bold; margin-top: 20px;"></p>
   <h1>🎉 Төөөөөрсөн өдрийн мэндддд! (a.k.a. 1/2 of 30) 🍌</h1>
   <p>Ингээд хөгшин өвөө болсоо хахахах 😂</p>
-
   <button onclick="showModal('letter')">📜 Read Letter</button>
-  <button onclick="showModal('fact')">🍌 Banana Fact</button>
-  <button onclick="showModal('joke')">😂 Banana Joke (Trust me)</button>
+  <button onclick="showModal('joke')">😂 Banana joke</button>
   <button onclick="showModal('gift')">🎁 Surprise Gift</button>
   <button onclick="showModal('game')">🎮 Banana Simulator</button>
   <button onclick="showModal('song')">🎵 Play Birthday Song</button>
   <button onclick="showModal('gallery')">📸 Funny Gallery</button>
   <button onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
-
+  <button onclick="spinTitle()">🔁 Spin Me</button>
+  <button onclick="showModal('compliment')">🌟 Compliment Me</button>
+  <button onclick="toggleDisco()">🪩 Disco Mode</button>
+  
   <!-- Modal -->
   <div id="popup" class="modal" onclick="hideModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -119,23 +128,78 @@
   <!-- Audio -->
   <audio id="birthdaySong" src="https://www.chosic.com/download-audio/29564/"></audio>
 
-  <script>
-    function showModal(type) {
-      const popup = document.getElementById("popup");
-      const popupText = document.getElementById("popupText");
-      let message = "";
 
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;"></canvas>
+ <p id="countdown" style="margin-top:20px; font-weight:bold;"></p>
+
+  <!-- Script -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    function toggleDisco() {
+  document.body.classList.toggle("disco");
+}
+   function updateCountdown() {
+  const now = new Date();
+  let birthday = new Date(now.getFullYear(), 4, 12, 0, 0, 0); // May 12, 00:00:00
+
+  // If birthday has passed this year, move to next year
+  if (now > birthday) {
+    birthday = new Date(now.getFullYear() + 1, 4, 12, 0, 0, 0);
+  }
+
+  const diff = birthday - now;
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diff / (1000 * 60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+
+  document.getElementById("countdown").innerText =
+    `🎉 ${days}d ${hours}h ${minutes}m ${seconds}s until May 12!`;
+}
+
+// Update every second
+updateCountdown();
+setInterval(updateCountdown, 1000); 
+
+    document.addEventListener("mousemove", (e) => {
+  const trail = document.createElement("div");
+  trail.style.position = "fixed";
+  trail.style.left = `${e.clientX}px`;
+  trail.style.top = `${e.clientY}px`;
+  trail.style.width = "10px";
+  trail.style.height = "10px";
+  trail.style.borderRadius = "50%";
+  trail.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+  trail.style.pointerEvents = "none";
+  trail.style.zIndex = "999";
+  document.body.appendChild(trail);
+  setTimeout(() => trail.remove(), 300);
+});
+
+
+
+    function spinTitle() {
+  const h1 = document.querySelector("h1");
+  h1.style.transition = "transform 1s";
+  h1.style.transform = "rotate(360deg)";
+  setTimeout(() => {
+    h1.style.transform = "rotate(0deg)";
+  }, 1000);
+}
+    const popup = document.getElementById("popup");
+    const popupText = document.getElementById("popupText");
+    function showModal(type) {
+      let message = "";
       switch(type) {
-        case "fact":
-          message = "Bruno Mars marsaas yg unendee ireeguu 😱😱!";
-          break;
         case "letter":
-          message = "";
+          message = "Заа юу байндаа залуу минь Төөөөрсөн өдрийн мэнд! Ингээд мань шигээ өвөө болж байгаамдаа хаха . 6 жил хамт байсан гэхэд дажгүй шүү зөндөө сайхан дурсамж бүтээсэн байнашүү . Инээсэн үед нь хамт инээж уйлсан үед нь гунигийг нь хөнгөлөх хүнтэйшү чи . Болку бол хүрээд ирээрэй мэдү хаха тэгээд ганцаараа эмороод балайраад байвдаа ай . Өнөөдөр бол үнэхээр чиний өдөршүү мэдү тэгэхлээр алаад өг нээрээ бэлгэ нь таалагдсан гэж найдая дараа жил ч гэсэн хамт байх юмсандаа найз минь гэхдээ би хэлдэгдээ би гэнэтхэн л хорвоогийн мөнх бусыг үзэчихгүй бол хэзээ ч алга болкүээ хаха . Аавтай нийлээд арай гэж л хийлээ . Жоохон туршлагагуйтчихлаа дараа нь бүр янзага юм хийж өгнөө заяу хэчнээн ч tutor үзсийм байгаан мдкүэ2 хаха . Царайлаг залууд төрсөн өдрийн мэнд хүргэе ингээд хөгшчүүлийн асрамжийн газарт тавтай морил .";
           break;
         case "gift":
           const gifts = [
             "Odorjin nogoorj untah erh 😴",
-            "Bayr hurgey irmuun odoo chamruu 100 reel yuvuulna 😂",
+            "Bayr hurgey irmuun odoo chamruu 100 reel yuvuulna ",
             "Negro of the year award 🏆🍌",
             "Secret: You're my favorite fruit friend"
           ];
@@ -145,33 +209,56 @@
           message = "Banana Simulator: Coming soon 😏";
           break;
         case "song":
-          message = '<iframe width="100%" height="300" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/857800439&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/happy-birthday-official" title="Happy Birthday" target="_blank" style="color: #cccccc; text-decoration: none;">Happy Birthday</a> · <a href="https://soundcloud.com/happy-birthday-official/sets/happy-birthday-47" title="Happy Birthday (Birthday Song Collection)" target="_blank" style="color: #cccccc; text-decoration: none;">Happy Birthday (Birthday Song Collection)</a></div>';
+          message = '<iframe width="100%" height="300" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/857800439&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe>';
           document.getElementById("birthdaySong").play();
           break;
         case "gallery":
-          message = '<div class="gallery">' +
-            '<img src="https://via.placeholder.com/100x100.png?text=LOL1" alt="Funny 1" />' +
-            '<img src="https://via.placeholder.com/100x100.png?text=LOL2" alt="Funny 2" />' +
-            '<img src="https://via.placeholder.com/100x100.png?text=LOL3" alt="Funny 3" />' +
-            '</div>';
-            case "joke":
-  message = '<iframe width="100%" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allowfullscreen></iframe>';
+  message = `
+    <iframe width="100%" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allowfullscreen></iframe>
+  `;
   break;
-          break;
+  case "compliment":
+  const compliments = [
+    "Not Best but a good singer(Lana my goat)😎",
+    "Gordon Ramsay 🌟",
+    "Vamprie 🔥",
+    "call him bird bcz he can fly in PE class 🎉"
+  ];
+  message = compliments[Math.floor(Math.random() * compliments.length)];
+  break;
+  case "joke":
+  message = `
+    <iframe width="100%" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allowfullscreen></iframe>
+  `;
+  break;
       }
-
       popupText.innerHTML = message.replace(/\n/g, "<br>");
       popup.style.display = "block";
     }
-
     function hideModal() {
-      document.getElementById("popup").style.display = "none";
+      popup.style.display = "none";
     }
-
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
     }
+    // Confetti on load
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const myConfetti = confetti.create(confettiCanvas, {
+      resize: true,
+      useWorker: true
+    });
+    window.onload = () => {
+      myConfetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 }
+      });
+    };
   </script>
+  <!-- Corner text -->
+<div style="position: fixed; bottom: 10px; right: 10px; color: gray; font-size: 0.9rem; font-family: monospace;">
+  this took forever :(
+</div>
 
 </body>
 </html>
